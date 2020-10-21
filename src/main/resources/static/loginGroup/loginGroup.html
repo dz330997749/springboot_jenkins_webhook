@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--&lt;!&ndash;获得更好的响应式支持&ndash;&gt;-->
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+    <title>员工列表页</title>
+    <!--引入bootstrap核心css样式-->
+    <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+    <!--引入jquery的js文件-->
+    <script src="../jquery/jquery.min.js"></script>
+    <!--引入bootstrap的jquery文件-->
+    <script src="../bootstrap/js/bootstrap.min.js"></script>
+    <!--引用vue.js-->
+    <script src="../vue/vue.min.js"></script>
+    <!--引用axios-->
+    <script src="../axios/axios.min.js"></script>
+</head>
+<body>
+
+    <!--这里是判断用户是否登陆和右上角退出登陆功能的html-->
+    <!--XX列表页面-->
+
+    <div class="container-fluid" id="app">
+        <div class="row">
+            <!--标题-->
+            <div class="col-sm-3 col-sm-offset-5">
+                <h1> 我是标题 </h1>
+            </div>
+
+            <!--这里为显示和个人中心退出的功能， 个人中心为下拉菜单-->
+            <div class="col-sm-2 col-sm-offset-2">
+                <!--当islogging为true的时候则为登陆状态， 显示右上的用户功能-->
+                <div class="dropdown" v-show="islogging">
+                    欢迎您 <strong style="font-size: 20px;color: #ff8000;">{{ loggingUser }}</strong>
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" >
+                        个人中心
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" >
+                        <li ><a href="#">用户信息</a></li>
+                        <li><a href="#">我的新消息</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="javascript:;" @click="logout">退出登陆</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
+
+
+<script>
+
+    var app = new Vue({
+        //该修改需要页面的div的id值即可使用
+        el: "#app",
+        data: {
+            //登陆状态 boolean
+            islogging: false,
+            //登陆中的用户
+            loggingUser: ""
+        },
+        methods: {
+
+            //退出登陆
+            logout() {
+                localStorage.removeItem("user");
+                location.reload();
+                alert("已经退出登陆");
+            }
+        },
+        //进入页面就执行的方法：查看localStorage中是否有登陆的用户
+        //如果存在就在页面右上角显示
+        created() {
+            var loginUser = localStorage.getItem("user");
+            if (loginUser!=null) {
+                //用户在线，把登陆状态设置为true
+                this.islogging = true;
+                // alert(localStorage.getItem("user")+"在线中");
+                this.loggingUser = loginUser;
+            }
+        }
+    })
+</script>
+
+

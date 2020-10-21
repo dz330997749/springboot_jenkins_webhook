@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="me.xz.dao.EmpDao">
+    <!-- 定义结果集，column表示sql查询列,property表示映射到实体的属性 -->
+    <resultMap id="withDeptResultMap" type="Employee">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="age" property="age"></result>
+        <result column="gender" property="gender"></result>
+        <result column="salary" property="salary"></result>
+        <result column="dept_id" property="dept_id"></result>
+        <!-- 关联对象 -->
+        <association property="department" javaType="Department">
+            <id column="id" property="id"></id>
+            <result column="dept_name" property="dept_name"></result>
+            <result column="dept_leader" property="dept_leader"></result>
+        </association>
+    </resultMap>
+    
+<!--查询带部门信息的全部员工，此时需要通过resultMap指定对应id的结果集-->
+    <select id="selectAllEmpsWithDept" resultMap="withDeptResultMap">
+        SELECT *
+        FROM
+        tbl_emp e
+        LEFT JOIN tbl_dept d
+        ON
+        e.dept_id = d.id
+        ORDER BY e.id
+    </select>
+
+    <!--添加一个员工数据-->
+    <insert id="addOneEmp" parameterType="Employee">
+        INSERT into tbl_emp values ( null, #{name}, #{age}, #{gender}, #{salary}, #{dept_id} );
+    </insert>
+
+    <!--删除员工-->
+    <delete id="deleteEmpById" parameterType="Integer">
+        DELETE FROM tbl_emp where id = #{id}
+    </delete>
+
+    <!--查询单个带部门信息的员工-->
+    <select id="selectOneEmpById" parameterType="Integer" resultMap="withDeptResultMap">
+        SELECT *
+        from tbl_emp e
+        LEFT JOIN tbl_dept d
+        ON e.dept_id=d.id
+        where e.id = #{id}
+        ORDER BY e.id
+    </select>
+
+    <!--修改员工信息-->
+    <update id="updateEmp" parameterType="Employee">
+        UPDATE springboot_emp.tbl_emp
+        SET
+        name = #{name},
+        age = #{age},
+        salary = #{salary},
+        gender = #{gender},
+        dept_id = #{dept_id}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

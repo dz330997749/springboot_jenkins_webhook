@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--&lt;!&ndash;获得更好的响应式支持&ndash;&gt;-->
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+    <title>员工列表页</title>
+    <!--引入bootstrap核心css样式-->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!--引入jquery的js文件-->
+    <script src="./jquery/jquery.min.js"></script>
+    <!--引入bootstrap的jquery文件-->
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <!--引用vue.js-->
+    <script src="./vue/vue.min.js"></script>
+    <!--引用axios-->
+    <script src="./axios/axios.min.js"></script>
+</head>
+<body>
+    <!--员工列表页面-->
+    <div class="container-fluid" id="empList">
+
+        <!--员工添加的模态框 #emp_add_modal-->
+        <div class="modal fade" id="emp_add_modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        <h4 class="modal-title">员工添加</h4>
+                    </div>
+                    <!--员工添加模态框的内容-->
+                    <div class="modal-body">
+                        <!--员工添加的表单-->
+                        <!--//  员工添加模态框要提交的员工信息：
+                                emp_add_modal: {}             -->
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">姓名</label>
+                                <div class="col-sm-8">
+                                    <input type="text" v-model="employee.name" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">年龄</label>
+                                <div class="col-sm-8">
+                                    <input type="text" v-model="employee.age" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">工资</label>
+                                <div class="col-sm-8">
+                                    <input type="text" v-model="employee.salary" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">性别</label>
+                                <div class="col-sm-8">
+                                    <div class="radio-inline">
+                                        <label>
+                                            <input type="radio" v-model="employee.gender" value="M" > 男
+                                        </label>
+                                    </div>
+                                    <div class="radio-inline">
+                                        <label>
+                                            <input type="radio" v-model="employee.gender" value="F"> 女
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">选择部门</label>
+                                <!--下拉选框，选择部门，部门的名称从数据库中获得-->
+                                <!-- v-for="dept in depts" -->
+                                <div class="col-sm-8">
+                                    <select class="form-control" v-model="employee.dept_id">
+                                        <option v-for="(dept, index) in depts"
+                                                v-bind:value="dept.id">{{ dept.dept_name }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="emp_add_submit_btn">添加</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- 员工添加的模态框  #emp_add_modal-->
+
+        <!--员工修改模态框-->
+        <div class="modal fade" id="emp_edit_modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        <h4 class="modal-title">修改员工信息</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">姓名</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" v-model="edit_emp.name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">年龄</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" v-model="edit_emp.age" >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">工资</label>
+                                <div class="col-sm-8">
+                                    <input type="text"  class="form-control" v-model="edit_emp.salary">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">性别</label>
+                                <div class="col-sm-8">
+                                    <div class="radio-inline">
+                                        <label>
+                                            <input type="radio" value="M" v-model="edit_emp.gender"> 男
+                                        </label>
+                                    </div>
+                                    <div class="radio-inline">
+                                        <label>
+                                            <input type="radio" value="F" v-model="edit_emp.gender"> 女
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">选择部门</label>
+                                <!--下拉选框，选择部门，部门的名称从数据库中获得-->
+                                <!-- v-for="dept in depts" -->
+                                <div class="col-sm-8">
+                                    <select class="form-control" v-model="edit_emp.dept_id">
+                                        <option v-for="(dept, index) in depts"
+                                                :value="dept.id">{{ dept.dept_name }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="emp_edit_submit_btn">修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div>
+
+        <!--标题-->
+        <div class="row">
+            <div class="col-sm-3 col-sm-offset-5">
+                <h1> 员工列表 </h1>
+            </div>
+
+            <!--这里为显示和个人中心退出的功能， 个人中心为下拉菜单-->
+            <div class="col-sm-2 col-sm-offset-2">
+                <!--当islogging为true的时候则为登陆状态， 显示右上的用户功能-->
+                <div class="dropdown" v-show="islogging">
+                    欢迎您 <strong style="font-size: 20px;color: #ff8000;">{{ loggingUser }}</strong>
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" >
+                        个人中心
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" >
+                        <li ><a href="#">用户信息</a></li>
+                        <li><a href="#">我的新消息</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="javascript:;" @click="logout">退出登陆</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!--员工列表主体部分-->
+        <div class="col-sm-6 col-sm-offset-3">
+            <!--点击弹出员工添加的模态框-->
+            <div>
+                <button class="btn btn-primary btn-sm" type="button" @click="addEmp">
+                    <span class="glyphicon glyphicon-plus"></span> 添加员工信息
+                </button>
+            </div>
+
+            <!--员工表格-->
+            <table class="table table-bordered table-hover" style="margin-top: 20px">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>姓名</th>
+                    <th>年龄</th>
+                    <th>性别</th>
+                    <th>工资</th>
+                    <th style="width: 12%;">部门</th>
+                    <th style="width: 12%;">部门领导</th>
+                    <th style="width: 20%;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(emp, index) in emps">
+                    <td>{{ emp.id }}</td>
+                    <td>{{ emp.name }}</td>
+                    <td>{{ emp.age }}</td>
+                    <td>{{ emp.gender == "M" ? "男" : '女' }}</td>
+                    <td>{{ emp.salary }}</td>
+                    <td>{{ emp.department.dept_name }}</td>
+                    <td>{{ emp.department.dept_leader }}</td>
+                    <td>
+                        <!--员工修改的按钮，点击后跳转页面empUpdate.html 并传递参数员工id-->
+                        <button class="btn btn-info btn-sm" type="button" @click="emp_edit(emp.id)">
+                            <span class="glyphicon glyphicon-pencil"></span> 修改
+                        </button>
+                        <!--员工删除按钮 员工id为emp.id axios的参数-->
+                        <button class="btn btn-danger btn-sm" type="button" @click="emp_delete(emp.id)">
+                            <span class="glyphicon glyphicon-trash"></span> 删除
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!--员工分页栏，及分页信息-->
+            <div class="row">
+                <!--分页信息-->
+                <div class="col-sm-5" style="margin-top: 25px; font-size: 15px;">
+                    共有{{ pageInfo.total }}条数据，共{{ pageInfo.pages }}页，每页{{ pageInfo.size }}条数据
+                    当前页：{{page}}
+                </div>
+                <!--分页栏-->
+                <div class="col-sm-7">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination" >
+                            <li @click="jump_page(1)"><a href="javascript:;">首页</a></li>
+                            <!--上一页，当页码为首页时隐藏-->
+                            <li v-if="pageInfo.hasPreviousPage" @click="jump_page(pageInfo.prePage)">
+                                <a href="javascript:;" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <!--v-for渲染导航栏页码数量-->
+                            <li v-for="(item, index) in pageInfo.navigatepageNums" :class="item==page? 'active': '' ">
+                                <a href="javascript:;" @click="jump_page(item)">{{ item }}</a>
+                            </li>
+                            <!--跳转下一页-->
+                            <li v-if="pageInfo.hasNextPage" @click="jump_page(page+1)">
+                                <a href="javascript:;" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <!--跳转尾页-->
+                            <li @click="jump_page(pageInfo.lastPage)"><a href="javascript:;">尾页</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+
+        </div> <!--员工列表主体部分-->
+
+    </div>
+
+</body>
+</html>
+
+<script>
+
+    var app = new Vue({
+        el: "#empList",
+        data: {
+            //登陆状态 boolean
+            islogging: false,
+            //登陆中的用户
+            loggingUser: "",
+        //  带分页查询过来的员工集合。只有当前页的6条 emps[5]是最大的了
+            emps: {
+
+            },
+        //    部门集合
+            depts: {},
+        //  员工添加模态框要提交的员工信息：
+            employee : {
+                name: null,
+                age: null,
+                gender: "M",
+                salary: null,
+                dept_id: 2,
+                department: {
+                    id : "",
+                    dept_name: null,
+                    dept_leader: null
+                }
+            },
+        //  进入当前url的页码 默认为1
+            page: "1",
+        //    分页信息：
+            pageInfo: {},
+        //  修改员工时需要回显的数据：
+            edit_emp: {}
+        },
+        methods: {
+            //模态框中的修改员工提交
+            emp_edit_submit_btn() {
+                that = this;
+                axios.post(location.origin+"/vue_springboot_emp/emp/updateEmp", this.edit_emp).then(
+                    function (res) {
+                        console.log(res);
+                        if(res.data.status==100) {
+                            alert("修改成功")
+                            that.jump_page(that.page);
+                            //手动关闭模态框
+                            $("#emp_edit_modal").modal("hide");
+                        } else {
+                            alert("修改失败")
+                        }
+                    }
+                )
+            },
+            //修改员工按钮
+            emp_edit(id) {
+                that = this;
+            //  axios 查询id对应的员工信息
+                axios.get(location.origin+"/vue_springboot_emp/emp/selectOneEmpById?id="+id).then(
+                    function (res) {
+                        console.log(res);
+                        that.edit_emp = res.data.extend.edit_emp;
+                    }
+                )
+
+                $("#emp_edit_modal").modal({
+                    show : true
+                })
+            },
+            //删除员工的方法
+            emp_delete(id) {
+                that = this;
+                if(window.confirm("确定删除这个员工吗？")) {
+                    axios.get(location.origin+"/vue_springboot_emp/emp/deleteEmpById?id="+id).then(
+                        function (res) {
+                            alert(res.data.message);
+                            that.jump_page(that.page);
+                        }
+                    )
+                }
+            },
+            //封装分页查询全部员工的方法：
+            selectAllEmps() {
+                axios.get(location.origin+"/vue_springboot_emp/emp/selectAllEmpByPage?page="+this.page).then(
+                    function (res) {
+                        //这是员工的信息
+                        that.emps = res.data.extend.empsPageInfo.list;
+                        // 这是分页的信息
+                        that.pageInfo = res.data.extend.empsPageInfo;
+                        console.log(that.emps);
+                    }
+                )
+            },
+            //页面跳转
+            jump_page(index) {
+                // 使点击页码的下标加1 = 当前页码
+                this.page = index;
+                //发送axios通过分页的方式查询全部的员工 实现跳转
+                this.selectAllEmps();
+            },
+
+            //点击提交员工添加数据
+            emp_add_submit_btn() {
+                axios.post(location.origin+"/vue_springboot_emp/emp/addEmp", this.employee).then(
+                    function (res) {
+                        if(res.data.status==100) {
+                            alert("添加员工数据成功");
+                            location.reload();
+                        } else {
+                            alert("添加员工数据失败");
+                            location.reload();
+                        }
+                    }
+                )
+            },
+            //弹出员工模态框
+            addEmp(){
+                $("#emp_add_modal").modal({
+                    show : true,
+                })
+            },
+            //退出登陆
+            logout() {
+                localStorage.removeItem("user");
+                location.reload();
+                alert("已经退出登陆");
+                //退出登陆时应该返回登陆页面
+                location.href="login.html";
+            }
+        },
+        //进入页面就执行的方法：查看localStorage中是否有登陆的用户
+        //如果存在就在页面右上角显示
+        created() {
+            var loginUser = localStorage.getItem("user");
+            if (loginUser!=null) {
+                //用户在线，把登陆状态设置为true
+                this.islogging = true;
+                // alert(localStorage.getItem("user")+"在线中");
+                this.loggingUser = loginUser;
+            }
+        },
+        mounted() {
+            that = this;
+        //  发送axios请求查询员工列表 非分页查询
+        //     axios.get(location.origin+"/vue_springboot_emp/emp/selectAllEmp").then(
+        //         function (res) {
+        //             that.emps = res.data.extend.emps;
+        //         }
+        //     )
+
+            //发送axios通过分页的方式查询全部的员工
+            this.selectAllEmps();
+
+            axios.get(location.origin+"/vue_springboot_emp/dept/selectAllDept").then(
+                function (res) {
+                    // console.log(res.data.extend.depts);
+                    that.depts = res.data.extend.depts;
+                }
+            )
+
+        }
+    })
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
